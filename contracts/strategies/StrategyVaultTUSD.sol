@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import "../IController.sol";
+import "../EController.sol";
 import "../IVault.sol";
 
 import "../../interfaces/Aave.sol";
@@ -61,20 +61,20 @@ contract StrategyVaultTUSD {
     }
 
     function debt() external view returns (uint) {
-        (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, IController(controller).vaults(address(this)));
+        (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, EController(controller).vaults(address(this)));
         return currentBorrowBalance;
     }
 
     function have() external view returns (uint) {
         uint _have = balanceOf();
-        _have = _have.mul(999).div(1000); // Adjust for yVault fee
+        _have = _have.mul(999).div(1000); // Adjust for vVault fee
         return _have;
     }
 
     function skimmable() external view returns (uint) {
-        (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, IController(controller).vaults(address(this)));
+        (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, EController(controller).vaults(address(this)));
         uint _have = balanceOf();
-        _have = _have.mul(999).div(1000); // Adjust for yVault fee
+        _have = _have.mul(999).div(1000); // Adjust for vVault fee
         if (_have > currentBorrowBalance) {
             return _have.sub(currentBorrowBalance);
         } else {
@@ -84,7 +84,7 @@ contract StrategyVaultTUSD {
 
     function skim() external {
         require(msg.sender == controller, "!controller");
-        (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, IController(controller).vaults(address(this)));
+        (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, EController(controller).vaults(address(this)));
         uint _have = balanceOf();
         _have = _have.mul(999).div(1000); // Adjust for yVault fee
         if (_have > currentBorrowBalance) {
@@ -115,7 +115,7 @@ contract StrategyVaultTUSD {
             _amount = _withdrawSome(_amount.sub(_balance));
             _amount = _amount.add(_balance);
         }
-        address _vault = IController(controller).vaults(address(this));
+        address _vault = EController(controller).vaults(address(this));
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_vault, _amount);
     }
@@ -125,7 +125,7 @@ contract StrategyVaultTUSD {
         require(msg.sender == controller, "!controller");
         _withdrawAll();
         balance = IERC20(want).balanceOf(address(this));
-        address _vault = IController(controller).vaults(address(this));
+        address _vault = EController(controller).vaults(address(this));
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_vault, balance);
     }
