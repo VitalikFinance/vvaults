@@ -86,7 +86,7 @@ contract StrategyVaultTUSD {
         require(msg.sender == controller, "!controller");
         (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, EController(controller).vaults(address(this)));
         uint _have = balanceOf();
-        _have = _have.mul(999).div(1000); // Adjust for yVault fee
+        _have = _have.mul(999).div(1000); // Adjust for vVault fee
         if (_have > currentBorrowBalance) {
             uint _balance = IERC20(want).balanceOf(address(this));
             uint _amount = _have.sub(currentBorrowBalance);
