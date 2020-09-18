@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/GSN/Context.sol";
 
-import "../IController.sol";
+import "../EController.sol";
 
-contract yVault is ERC20 {
+contract vVault is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -24,8 +24,8 @@ contract yVault is ERC20 {
     address public controller;
 
     constructor (address _token, address _controller) public ERC20(
-        string(abi.encodePacked("yearn ", ERC20(_token).name())),
-        string(abi.encodePacked("y", ERC20(_token).symbol()))
+        string(abi.encodePacked("vearn ", ERC20(_token).name())),
+        string(abi.encodePacked("v", ERC20(_token).symbol()))
     ) {
         _setupDecimals(ERC20(_token).decimals());
         token = IERC20(_token);
@@ -35,7 +35,7 @@ contract yVault is ERC20 {
 
     function balance() public view returns (uint) {
         return token.balanceOf(address(this))
-                .add(IController(controller).balanceOf(address(token)));
+                .add(EController(controller).balanceOf(address(token)));
     }
 
     function setMin(uint _min) external {
@@ -62,7 +62,7 @@ contract yVault is ERC20 {
     function earn() public {
         uint _bal = available();
         token.safeTransfer(controller, _bal);
-        IController(controller).earn(address(token), _bal);
+        EController(controller).earn(address(token), _bal);
     }
 
     function depositAll() external {
@@ -105,7 +105,7 @@ contract yVault is ERC20 {
         uint b = token.balanceOf(address(this));
         if (b < r) {
             uint _withdraw = r.sub(b);
-            IController(controller).withdraw(address(token), _withdraw);
+            EController(controller).withdraw(address(token), _withdraw);
             uint _after = token.balanceOf(address(this));
             uint _diff = _after.sub(b);
             if (_diff < _withdraw) {
