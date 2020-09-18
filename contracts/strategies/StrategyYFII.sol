@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import "../IController.sol";
+import "../EController.sol";
 import "../IVault.sol";
 
 import "../../interfaces/Yfii.sol";
@@ -39,7 +39,7 @@ contract StrategyYfii {
     address constant public curve = address(0x45F783CCE6B7FF23B2ab2D70e416cdb7D6055f51);
 
     address constant public dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    address constant public ydai = address(0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01);
+    address constant public vdai = address(0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01);
 
     uint public fee = 500;
     uint constant public max = 10000;
@@ -86,8 +86,8 @@ contract StrategyYfii {
 
 
         uint _fee = _amount.mul(fee).div(max);
-        IERC20(want).safeTransfer(IController(controller).rewards(), _fee);
-        address _vault = IController(controller).vaults(address(want));
+        IERC20(want).safeTransfer(EController(controller).rewards(), _fee);
+        address _vault = EController(controller).vaults(address(want));
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
 
         IERC20(want).safeTransfer(_vault, _amount.sub(_fee));
@@ -99,7 +99,7 @@ contract StrategyYfii {
         _withdrawAll();
         balance = IERC20(want).balanceOf(address(this));
 
-        address _vault = IController(controller).vaults(address(want));
+        address _vault = EController(controller).vaults(address(want));
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_vault, balance);
 
@@ -114,16 +114,16 @@ contract StrategyYfii {
         IERC20(yfii).safeApprove(balancer, 0);
         IERC20(yfii).safeApprove(balancer, IERC20(yfii).balanceOf(address(this)));
         Balancer(balancer).swapExactAmountIn(yfii, IERC20(yfii).balanceOf(address(this)), dai, 0, uint(-1));
-        IERC20(dai).safeApprove(ydai, 0);
-        IERC20(dai).safeApprove(ydai, IERC20(dai).balanceOf(address(this)));
-        IVault(ydai).deposit(IERC20(dai).balanceOf(address(this)));
-        IERC20(ydai).safeApprove(curve, 0);
-        IERC20(ydai).safeApprove(curve, IERC20(ydai).balanceOf(address(this)));
+        IERC20(dai).safeApprove(vdai, 0);
+        IERC20(dai).safeApprove(vdai, IERC20(dai).balanceOf(address(this)));
+        IVault(vdai).deposit(IERC20(dai).balanceOf(address(this)));
+        IERC20(vdai).safeApprove(curve, 0);
+        IERC20(vdai).safeApprove(curve, IERC20(vdai).balanceOf(address(this)));
         uint _before = IERC20(want).balanceOf(address(this));
-        ICurveFi(curve).add_liquidity([IERC20(ydai).balanceOf(address(this)),0,0,0],0);
+        ICurveFi(curve).add_liquidity([IERC20(vdai).balanceOf(address(this)),0,0,0],0);
         uint _after = IERC20(want).balanceOf(address(this));
         uint _fee = _after.sub(_before).mul(fee).div(max);
-        IERC20(want).safeTransfer(IController(controller).rewards(), _fee);
+        IERC20(want).safeTransfer(EController(controller).rewards(), _fee);
         IERC20(want).safeApprove(pool, 0);
         IERC20(want).safeApprove(pool, IERC20(want).balanceOf(address(this)));
         Yfii(pool).stake(IERC20(want).balanceOf(address(this)));
