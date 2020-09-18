@@ -61,7 +61,7 @@ contract StrategyVaultUSDC {
     }
 
     function debt() public view returns (uint) {
-        (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, IController(controller).vaults(address(this)));
+        (,uint currentBorrowBalance,,,,,,,,) = Aave(getAave()).getUserReserveData(want, EController(controller).vaults(address(this)));
         return currentBorrowBalance;
     }
 
