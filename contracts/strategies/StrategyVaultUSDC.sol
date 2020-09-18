@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import "../IController.sol";
+import "../EController.sol";
 import "../IVault.sol";
 
 import "../../interfaces/Aave.sol";
@@ -107,7 +107,7 @@ contract StrategyVaultUSDC {
             _amount = _withdrawSome(_amount.sub(_balance));
             _amount = _amount.add(_balance);
         }
-        address _vault = IController(controller).vaults(address(this));
+        address _vault = EController(controller).vaults(address(this));
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_vault, _amount);
     }
@@ -117,7 +117,7 @@ contract StrategyVaultUSDC {
         require(msg.sender == controller, "!controller");
         _withdrawAll();
         balance = IERC20(want).balanceOf(address(this));
-        address _vault = IController(controller).vaults(address(this));
+        address _vault = EController(controller).vaults(address(this));
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_vault, balance);
     }
